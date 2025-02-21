@@ -31,4 +31,7 @@ public class Doctor {
 
     @Column(nullable = false, length = 50)
     private ZoneOffset timeZone;
+
+    @Column(nullable = false)
+    private int totalPatients;
 }

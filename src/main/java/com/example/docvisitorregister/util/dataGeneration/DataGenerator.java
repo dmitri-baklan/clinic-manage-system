@@ -9,11 +9,17 @@ import com.example.docvisitorregister.repository.PatientRepository;
 import com.example.docvisitorregister.repository.VisitRepository;
 import com.github.javafaker.Faker;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.Doc;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -25,7 +31,7 @@ import static com.example.docvisitorregister.util.dataGeneration.FakerTimeZones.
 import static java.time.LocalDate.*;
 
 @Component
-@DependsOn({"doctorRepository", "patientRepository", "visitRepository"})
+@DependsOn({"doctorRepository", "patientRepository", "visitRepository", "dataGeneratorDoctorUpdate"})
 public class DataGenerator {
 
     @Value("${dataGeneration.enabled}")
@@ -60,6 +66,9 @@ public class DataGenerator {
     @Autowired
     VisitRepository visitRepository;
 
+    @Autowired
+    DataGeneratorDoctorUpdate dataGeneratorDoctorUpdate;
+
     Faker faker = new Faker(new Locale("en-En"));
     Random random = new Random();
 
@@ -71,14 +80,17 @@ public class DataGenerator {
             generateDoctors();
             generatePatients();
             generateVisits();
+            dataGeneratorDoctorUpdate.updateDoctorsTotalPatients();
         }
     }
+
     private void generateDoctors() {
         for (int i = 0; i < doctorNumber; i++) {
             doctorRepository.save(Doctor.builder()
                     .firstName(faker.name().firstName())
                     .lastName(faker.name().lastName())
                     .timeZone(ZoneOffset.of(US_TIMEZONES[random.nextInt(US_TIMEZONES.length)]))
+                    .totalPatients(0)
                     .build());
         }
     }
@@ -96,6 +108,7 @@ public class DataGenerator {
             Long patientId = 1 + random.nextLong(patientNumber);
             try {
                 LocalDateTime localDateTime = getRandomDate(startDate, endDate);
+
                 visitRepository.save(Visit.builder()
                         .start(localDateTime)
                         .end(localDateTime.plusHours(1))
@@ -108,6 +121,8 @@ public class DataGenerator {
             }
         }
     }
+
+
 
     private LocalDateTime getRandomDate(LocalDate startDate, LocalDate endDate) {
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
@@ -123,21 +138,6 @@ public class DataGenerator {
         }
 
         return LocalDateTime.of(randomDate, randomTime);
-    }
-
-
-    public LocalDateTime generateRandomDateTime() {
-        LocalDateTime randomDate = faker.date().future(90, java.util.concurrent.TimeUnit.DAYS).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
-
-        int randomHour = 8 + random.nextInt(13);
-        int randomMinute = random.nextInt(60);
-
-        LocalTime randomTime = LocalTime.of(randomHour, randomMinute);
-
-        return randomDate.withHour(randomTime.getHour())
-                .withMinute(randomTime.getMinute())
-                .withSecond(randomTime.getSecond())
-                .withNano(0);
     }
 
 }

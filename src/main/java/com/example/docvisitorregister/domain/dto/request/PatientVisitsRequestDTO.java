@@ -1,5 +1,6 @@
 package com.example.docvisitorregister.domain.dto.request;
 
+import jakarta.annotation.Nullable;
 import lombok.Data;
 
 import java.util.List;
@@ -8,7 +9,10 @@ import java.util.List;
 public class PatientVisitsRequestDTO {
     Integer pageNo;
     Integer pageSize;
+    @Nullable
     String firstName;
+    @Nullable
     String lastName;
-    List<Integer> doctorIds;
+    @Nullable
+    List<Long> doctorIds;
 }

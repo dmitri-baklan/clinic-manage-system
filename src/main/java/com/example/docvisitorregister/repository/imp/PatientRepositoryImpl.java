@@ -1,12 +1,25 @@
 package com.example.docvisitorregister.repository.imp;
 
+import com.example.docvisitorregister.domain.dao.Doctor;
+import com.example.docvisitorregister.domain.dao.Patient;
+import com.example.docvisitorregister.domain.dao.Visit;
 import com.example.docvisitorregister.repository.PatientQueryRepository;
+import com.example.docvisitorregister.util.SQLQueryLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class PatientRepositoryImpl implements PatientQueryRepository {
@@ -15,26 +28,27 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
     private EntityManager entityManager;
 
     @Override
-    public List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, String lastName, List<Integer> doctorIds) {
-        String sql = "SELECT v.id AS visit_id, v.start, v.end, " +
-                "p.id AS patient_id, p.first_name AS patient_first_name, p.last_name AS patient_last_name, " +
-                "d.id AS doctor_id, d.first_name AS doctor_first_name, d.last_name AS doctor_last_name " +
-                "FROM visits v " +
-                "JOIN patients p ON v.patient_id = p.id " +
-                "JOIN doctors d ON v.doctor_id = d.id " +
-                "WHERE v.start = (SELECT MAX(v2.start) FROM visits v2 WHERE v2.doctor_id = v.doctor_id) " +
-                "AND (p.first_name LIKE :firstName OR :firstName IS NULL) " +
-                "AND (p.last_name LIKE :lastName OR :lastName IS NULL) " +
-                "AND (:doctorIds IS NULL OR v.doctor_id IN :doctorIds)" +
-                "ORDER BY v.start DESC"; // Adding ORDER BY for performance and logical ordering.
-
-        return entityManager.createNativeQuery(sql)
-                .setHint("org.hibernate.cacheable", true)
+    public List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, String lastName, List<Long> doctorIds) {
+        String queryToProcess = SQLQueryLoader.getPatientVisitQuery();
+        queryToProcess = setDoctorIds(queryToProcess, doctorIds);
+        Query query = entityManager.createNativeQuery(queryToProcess);
+        query.setHint("org.hibernate.cacheable", true)
                 .setParameter("firstName", firstName != null ? "%" + firstName + "%" : null)
                 .setParameter("lastName", lastName != null ? "%" + lastName + "%" : null)
-                .setParameter("doctorIds", doctorIds != null && !doctorIds.isEmpty() ? doctorIds : null)
-                .setFirstResult((pageNo - 1) * pageSize)
-                .setMaxResults(pageSize)
-                .getResultList();
+                .setParameter("pageSize", Integer.valueOf(pageSize))
+                .setParameter("pageNo", Integer.valueOf((pageNo - 1) * pageSize));
+        return query.getResultList();
+    }
+
+    private String setDoctorIds(String queryToProcess, List<Long> doctorIds) {
+        if (doctorIds != null && !doctorIds.isEmpty()) {
+            String doctorIdsString = doctorIds.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(",", "(", ")"));
+            queryToProcess = queryToProcess.replace("AND (v.doctor_id IN ())", "AND (v.doctor_id IN " + doctorIdsString + ")");
+        } else {
+            queryToProcess = queryToProcess.replace("AND (v.doctor_id IN ())", "");
+        }
+        return queryToProcess;
     }
 }

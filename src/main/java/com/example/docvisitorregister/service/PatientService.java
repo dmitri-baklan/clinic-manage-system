@@ -9,5 +9,5 @@ import java.util.List;
 
 @Service
 public interface PatientService {
-    List<PatientListResponseDTO> getPatientsLastVisit(PatientVisitsRequestDTO patientVisitsRequest);
+    PatientListResponseDTO getPatientsLastVisit(PatientVisitsRequestDTO patientVisitsRequest);
 }

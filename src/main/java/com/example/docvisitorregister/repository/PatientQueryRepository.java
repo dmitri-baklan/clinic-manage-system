@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface PatientQueryRepository {
 
-    List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, String lastName, List<Integer> doctorIds);
+    List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, String lastName, List<Long> doctorIds);
 }
