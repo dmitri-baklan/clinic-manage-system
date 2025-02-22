@@ -90,7 +90,7 @@ public class DataGenerator {
                     .firstName(faker.name().firstName())
                     .lastName(faker.name().lastName())
                     .timeZone(ZoneOffset.of(US_TIMEZONES[random.nextInt(US_TIMEZONES.length)]))
-                    .totalPatients(0)
+                    .totalPatients(0L)
                     .build());
         }
     }
@@ -108,7 +108,6 @@ public class DataGenerator {
             Long patientId = 1 + random.nextLong(patientNumber);
             try {
                 LocalDateTime localDateTime = getRandomDate(startDate, endDate);
-
                 visitRepository.save(Visit.builder()
                         .start(localDateTime)
                         .end(localDateTime.plusHours(1))

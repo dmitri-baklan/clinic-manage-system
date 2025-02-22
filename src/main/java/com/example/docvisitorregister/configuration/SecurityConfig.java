@@ -10,22 +10,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeRequests()
-//                .requestMatchers("/public/**").permitAll()  // Public endpoint
-//                .anyRequest().authenticated();  // All other endpoints require authentication
-//        return http.build();
-//    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()  // Disable CSRF protection (be cautious when using in production)
+                .csrf().disable()
                 .authorizeRequests()
-                .requestMatchers("/**").permitAll()  // Allow public endpoints
-                .anyRequest().authenticated();  // Require authentication for all other requests
+                .requestMatchers("/**").permitAll()
+                .anyRequest().authenticated();
         return http.build();
     }
 }

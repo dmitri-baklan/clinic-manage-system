@@ -19,7 +19,7 @@ WITH RankedVisits AS (
          ORDER BY visit_start
          LIMIT :pageSize OFFSET :pageNo
     )
-SELECT
+SELECT DISTINCT
     p.id AS patientId,
     p.first_name AS patientFirstName,
     p.last_name AS patientLastName,

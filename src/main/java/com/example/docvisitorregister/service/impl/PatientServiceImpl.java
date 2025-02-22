@@ -26,7 +26,7 @@ public class PatientServiceImpl implements PatientService {
                 patientVisitsRequestDTO.getPageNo(),
                 patientVisitsRequestDTO.getFirstName(),
                 patientVisitsRequestDTO.getLastName(),
-                patientVisitsRequestDTO.getDoctorIds());
+                patientVisitsRequestDTO.getDoctorId());
         PatientListResponseDTO patientListResponseDTO = complexResponseMapper.toPatientListResponseDTO(result);
         return patientListResponseDTO;
     }

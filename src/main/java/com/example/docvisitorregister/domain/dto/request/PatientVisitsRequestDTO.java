@@ -14,5 +14,5 @@ public class PatientVisitsRequestDTO {
     @Nullable
     String lastName;
     @Nullable
-    List<Long> doctorIds;
+    List<Long> doctorId;
 }

@@ -28,7 +28,7 @@ public class ComplexResponseMapper {
                 DoctorDTO doctorDTO = new DoctorDTO();
                 doctorDTO.setFirstName((String) tuples.get(i)[3]);
                 doctorDTO.setLastName((String) tuples.get(i)[4]);
-                doctorDTO.setTotalPatients((Integer) tuples.get(i)[5]);
+                doctorDTO.setTotalPatients((Long) tuples.get(i)[5]);
                 VisitDTO visitDTO = new VisitDTO();
                 visitDTO.setStart(LocalDateTime.parse(tuples.get(i)[6].toString().split("\\.")[0],
                         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
