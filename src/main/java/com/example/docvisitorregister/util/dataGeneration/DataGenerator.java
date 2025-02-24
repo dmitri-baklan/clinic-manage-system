@@ -4,9 +4,14 @@ package com.example.docvisitorregister.util.dataGeneration;
 import com.example.docvisitorregister.domain.dao.Doctor;
 import com.example.docvisitorregister.domain.dao.Patient;
 import com.example.docvisitorregister.domain.dao.Visit;
+import com.example.docvisitorregister.domain.dto.request.VisitRequestDTO;
+import com.example.docvisitorregister.exception.DoctorNotAvailableException;
+import com.example.docvisitorregister.exception.TimeslotWithinWorkingTimeException;
 import com.example.docvisitorregister.repository.DoctorRepository;
 import com.example.docvisitorregister.repository.PatientRepository;
 import com.example.docvisitorregister.repository.VisitRepository;
+import com.example.docvisitorregister.service.VisitService;
+import com.example.docvisitorregister.service.impl.VisitServiceImpl;
 import com.github.javafaker.Faker;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
@@ -31,7 +36,7 @@ import static com.example.docvisitorregister.util.dataGeneration.FakerTimeZones.
 import static java.time.LocalDate.*;
 
 @Component
-@DependsOn({"doctorRepository", "patientRepository", "visitRepository", "dataGeneratorDoctorUpdate"})
+@DependsOn({"doctorRepository", "patientRepository", "visitServiceImpl", "dataGeneratorDoctorUpdate"})
 public class DataGenerator {
 
     @Value("${dataGeneration.enabled}")
@@ -64,7 +69,7 @@ public class DataGenerator {
     PatientRepository patientRepository;
 
     @Autowired
-    VisitRepository visitRepository;
+    VisitServiceImpl visitServiceImpl;
 
     @Autowired
     DataGeneratorDoctorUpdate dataGeneratorDoctorUpdate;
@@ -107,14 +112,17 @@ public class DataGenerator {
             Long docId = 1 + random.nextLong(doctorNumber);
             Long patientId = 1 + random.nextLong(patientNumber);
             try {
-                LocalDateTime localDateTime = getRandomDate(startDate, endDate);
-                visitRepository.save(Visit.builder()
-                        .start(localDateTime)
-                        .end(localDateTime.plusHours(1))
-                        .doctor(Doctor.builder().id(docId).build())
-                        .patient(Patient.builder().id(patientId).build())
+                LocalDateTime randomDateTime = getRandomDateTime(startDate, endDate);
+                visitServiceImpl.createVisit(VisitRequestDTO.builder()
+                        .start(randomDateTime)
+                        .end(randomDateTime.plusHours(1))
+                        .doctorId(docId)
+                        .patientId(patientId)
                         .build());
-            } catch (Exception e) {
+            } catch (DoctorNotAvailableException | TimeslotWithinWorkingTimeException e) {
+                i--;
+            }
+            catch (Exception e) {
                 System.out.println(docId + " - " + patientId + " - " + e.getMessage());
                 e.printStackTrace();
             }
@@ -123,7 +131,7 @@ public class DataGenerator {
 
 
 
-    private LocalDateTime getRandomDate(LocalDate startDate, LocalDate endDate) {
+    private LocalDateTime getRandomDateTime(LocalDate startDate, LocalDate endDate) {
         long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
         long randomDays = random.nextLong(daysBetween);
         int randomHour = 8 + random.nextInt(13);
