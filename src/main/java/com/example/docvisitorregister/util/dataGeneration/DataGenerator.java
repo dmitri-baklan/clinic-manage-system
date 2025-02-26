@@ -94,7 +94,7 @@ public class DataGenerator {
             doctorRepository.save(Doctor.builder()
                     .firstName(faker.name().firstName())
                     .lastName(faker.name().lastName())
-                    .timeZone(ZoneOffset.of(US_TIMEZONES[random.nextInt(US_TIMEZONES.length)]))
+                    .timeZone(US_TIMEZONES[random.nextInt(US_TIMEZONES.length)])
                     .totalPatients(0L)
                     .build());
         }

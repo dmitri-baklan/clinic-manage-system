@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Service
 public class VisitServiceImpl implements VisitService {
@@ -32,8 +34,12 @@ public class VisitServiceImpl implements VisitService {
 
     @Transactional
     public VisitResponseDTO createVisit(VisitRequestDTO visit) {
+        if(visit.getTimeZoneId() != null && !visit.getTimeZoneId().isBlank()) {
+            visit = convertToDoctorTimezone(visit);
+        }
         if(isWorkingHours(visit.getStart(), visit.getEnd())) {
             Visit newVisit = addVisit(visit);
+
             return VisitResponseDTO.builder()
                     .start(newVisit.getStart())
                     .end(newVisit.getEnd())
@@ -46,29 +52,52 @@ public class VisitServiceImpl implements VisitService {
         }
     }
 
-    @Override
-    public boolean timeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd) {
-        return visitRepository.countOverlappingVisits(doctorId,timeSlotStart, timeSlotEnd) == 0;
-    }
-
     protected Visit addVisit(VisitRequestDTO visit) {
-        if(timeSlotFree(visit.getDoctorId(), visit.getStart(), visit.getEnd())) {
+        if(isTimeSlotFree(visit.getDoctorId(), visit.getStart(), visit.getEnd())) {
             Visit savedVisit = visitRepository.save(Visit.builder()
                     .start(visit.getStart())
                     .end(visit.getEnd())
                     .patient(Patient.builder().id(visit.getPatientId()).build())
                     .doctor(Doctor.builder().id(visit.getDoctorId()).build())
                     .build());
+
             if(!visitRepository.hasPatientAttendedDoctor(visit.getPatientId(), visit.getDoctorId())) {
                 doctorService.incrementTotalPatients(savedVisit.getDoctor());
             }
+
             return savedVisit;
         } else {
             throw new DoctorNotAvailableException("Doctor is not available for that time slot");
         }
     }
 
+    private VisitRequestDTO convertToDoctorTimezone(VisitRequestDTO visit) {
+        Doctor doctor = doctorService.findDoctorById(visit.getDoctorId());
+        String patientTimezone = visit.getTimeZoneId();
+
+        ZonedDateTime patientStart = convertToZone(visit.getStart(), patientTimezone);
+        ZonedDateTime patientEnd = convertToZone(visit.getEnd(), patientTimezone);
+
+        ZonedDateTime doctorStart = patientStart.withZoneSameInstant(ZoneId.of(doctor.getTimeZone()));
+        ZonedDateTime doctorEnd = patientEnd.withZoneSameInstant(ZoneId.of(doctor.getTimeZone()));
+
+        visit.setStart(doctorStart.toLocalDateTime());
+        visit.setEnd(doctorEnd.toLocalDateTime());
+
+        return visit;
+    }
+
     private boolean isWorkingHours(LocalDateTime start, LocalDateTime end) {
         return !start.toLocalTime().isBefore(WORK_START) && !end.toLocalTime().isAfter(WORK_END);
+    }
+
+    @Override
+    public boolean isTimeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd) {
+        return visitRepository.countOverlappingVisits(doctorId, timeSlotStart, timeSlotEnd) == 0;
+    }
+
+    private ZonedDateTime convertToZone(LocalDateTime localDateTime, String timezoneId) {
+        ZoneId zoneId = ZoneId.of(timezoneId);
+        return localDateTime.atZone(zoneId);
     }
 }
