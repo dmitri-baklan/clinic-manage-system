@@ -6,6 +6,7 @@ import com.example.docvisitorregister.domain.dao.Visit;
 import com.example.docvisitorregister.domain.dto.request.VisitRequestDTO;
 import com.example.docvisitorregister.domain.dto.response.VisitResponseDTO;
 import com.example.docvisitorregister.exception.DoctorNotAvailableException;
+import com.example.docvisitorregister.exception.TimeslotIsInvalidException;
 import com.example.docvisitorregister.exception.TimeslotWithinWorkingTimeException;
 import com.example.docvisitorregister.repository.VisitRepository;
 import com.example.docvisitorregister.service.DoctorService;
@@ -34,21 +35,25 @@ public class VisitServiceImpl implements VisitService {
 
     @Transactional
     public VisitResponseDTO createVisit(VisitRequestDTO visit) {
-        if(visit.getTimeZoneId() != null && !visit.getTimeZoneId().isBlank()) {
-            visit = convertToDoctorTimezone(visit);
-        }
-        if(isWorkingHours(visit.getStart(), visit.getEnd())) {
-            Visit newVisit = addVisit(visit);
+        if(isValidTimeSlot(visit.getStart(), visit.getEnd())) {
+            if(visit.getTimeZoneId() != null && !visit.getTimeZoneId().isBlank()) {
+                visit = convertToDoctorTimezone(visit);
+            }
+            if(isWorkingHours(visit.getStart(), visit.getEnd())) {
+                Visit newVisit = addVisit(visit);
 
-            return VisitResponseDTO.builder()
-                    .start(newVisit.getStart())
-                    .end(newVisit.getEnd())
-                    .doctorId(newVisit.getDoctor().getId())
-                    .patientId(newVisit.getPatient().getId())
-                    .build();
+                return VisitResponseDTO.builder()
+                        .start(newVisit.getStart())
+                        .end(newVisit.getEnd())
+                        .doctorId(newVisit.getDoctor().getId())
+                        .patientId(newVisit.getPatient().getId())
+                        .build();
+            } else {
+                throw new TimeslotWithinWorkingTimeException("Timeslot is not corresponding to working hours (from %s to %s).",
+                        WORK_START, WORK_END);
+            }
         } else {
-            throw new TimeslotWithinWorkingTimeException("Timeslot is not corresponding to working hours (from %s to %s).",
-                    WORK_START, WORK_END);
+            throw new TimeslotIsInvalidException("Timeslot is not valid. End must be after start time.");
         }
     }
 
@@ -71,6 +76,10 @@ public class VisitServiceImpl implements VisitService {
         }
     }
 
+    private boolean isValidTimeSlot(LocalDateTime start, LocalDateTime end) {
+        return start.isBefore(end);
+    }
+
     private VisitRequestDTO convertToDoctorTimezone(VisitRequestDTO visit) {
         Doctor doctor = doctorService.findDoctorById(visit.getDoctorId());
         String patientTimezone = visit.getTimeZoneId();
@@ -78,17 +87,19 @@ public class VisitServiceImpl implements VisitService {
         ZonedDateTime patientStart = convertToZone(visit.getStart(), patientTimezone);
         ZonedDateTime patientEnd = convertToZone(visit.getEnd(), patientTimezone);
 
-        ZonedDateTime doctorStart = patientStart.withZoneSameInstant(ZoneId.of(doctor.getTimeZone()));
-        ZonedDateTime doctorEnd = patientEnd.withZoneSameInstant(ZoneId.of(doctor.getTimeZone()));
+        LocalDateTime doctorStart = patientStart.withZoneSameInstant(ZoneId.of(doctor.getTimeZone())).toLocalDateTime();
+        LocalDateTime doctorEnd = patientEnd.withZoneSameInstant(ZoneId.of(doctor.getTimeZone())).toLocalDateTime();
 
-        visit.setStart(doctorStart.toLocalDateTime());
-        visit.setEnd(doctorEnd.toLocalDateTime());
-
-        return visit;
+        return VisitRequestDTO.builder()
+                .start(doctorStart)
+                .end(doctorEnd)
+                .patientId(visit.getPatientId())
+                .doctorId(visit.getDoctorId())
+                .build();
     }
 
     private boolean isWorkingHours(LocalDateTime start, LocalDateTime end) {
-        return !start.toLocalTime().isBefore(WORK_START) && !end.toLocalTime().isAfter(WORK_END);
+        return start.toLocalTime().isAfter(WORK_START) && end.toLocalTime().isBefore(WORK_END);
     }
 
     @Override

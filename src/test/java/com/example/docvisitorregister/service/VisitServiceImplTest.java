@@ -18,6 +18,8 @@ import org.mockito.MockitoAnnotations;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -46,6 +48,7 @@ class VisitServiceImplTest {
                 .end(LocalDateTime.of(2025, 2, 22, 11, 0))
                 .doctorId(1L)
                 .patientId(1L)
+                .timeZoneId("America/New_York") // Example timezone
                 .build();
     }
 
@@ -53,6 +56,7 @@ class VisitServiceImplTest {
     void testCreateVisit_Success() {
         Doctor doctor = new Doctor();
         doctor.setId(1L);
+        doctor.setTimeZone("Europe/Kiev"); // Doctor's timezone
 
         Patient patient = new Patient();
         patient.setId(1L);
@@ -66,6 +70,7 @@ class VisitServiceImplTest {
         when(visitRepository.countOverlappingVisits(anyLong(), any(), any())).thenReturn(0L);
         when(visitRepository.save(any(Visit.class))).thenReturn(mockVisit);
         when(visitRepository.hasPatientAttendedDoctor(anyLong(), anyLong())).thenReturn(false);
+        when(doctorService.findDoctorById(anyLong())).thenReturn(doctor);
 
         VisitResponseDTO response = visitService.createVisit(visitRequestDTO);
 
@@ -80,17 +85,17 @@ class VisitServiceImplTest {
 
     @Test
     void testCreateVisit_TimeslotNotInWorkingHours() {
-        
-        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30)); // Before working hours
+        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30));
+        visitRequestDTO.setTimeZoneId(null);// Before working hours
         assertThrows(TimeslotWithinWorkingTimeException.class, () -> visitService.createVisit(visitRequestDTO));
     }
 
     @Test
     void testCreateVisit_DoctorNotAvailable() {
-        
+        visitRequestDTO.setTimeZoneId(null);
         when(visitRepository.countOverlappingVisits(anyLong(), any(), any())).thenReturn(1L); // Doctor is already booked
+        when(doctorService.findDoctorById(anyLong())).thenReturn(new Doctor());
 
-         
         DoctorNotAvailableException exception = assertThrows(
                 DoctorNotAvailableException.class,
                 () -> visitService.createVisit(visitRequestDTO)
@@ -100,7 +105,6 @@ class VisitServiceImplTest {
 
     @Test
     void testIsWorkingHours_ValidTime() throws Exception {
-        
         LocalDateTime start = LocalDateTime.of(2025, 2, 22, 9, 0); // Within working hours
         LocalDateTime end = LocalDateTime.of(2025, 2, 22, 10, 0);
 
@@ -109,23 +113,49 @@ class VisitServiceImplTest {
 
         boolean result = (boolean) method.invoke(visitService, start, end);
 
-        
         assertTrue(result);
     }
 
     @Test
     void testIsWorkingHours_InvalidTime() throws Exception {
-        
         LocalDateTime start = LocalDateTime.of(2025, 2, 22, 7, 0); // Before working hours
         LocalDateTime end = LocalDateTime.of(2025, 2, 22, 9, 0);
-
 
         Method method = VisitServiceImpl.class.getDeclaredMethod("isWorkingHours", LocalDateTime.class, LocalDateTime.class);
         method.setAccessible(true);
 
         boolean result = (boolean) method.invoke(visitService, start, end);
 
-        
         assertFalse(result);
     }
+
+    @Test
+    void testConvertToDoctorTimezone() throws Exception {
+        // Mock the Doctor's timezone to be "Europe/Kiev"
+        Doctor doctor = new Doctor();
+        doctor.setId(1L);
+        doctor.setTimeZone("Europe/Kiev");
+
+        when(doctorService.findDoctorById(anyLong())).thenReturn(doctor);
+
+        // Mock the visit request DTO
+        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 10, 0));
+        visitRequestDTO.setEnd(LocalDateTime.of(2025, 2, 22, 11, 0));
+
+        // Use reflection to access the private method
+        Method method = VisitServiceImpl.class.getDeclaredMethod("convertToDoctorTimezone", VisitRequestDTO.class);
+        method.setAccessible(true);
+
+        // Invoke the method and capture the result
+        VisitRequestDTO result = (VisitRequestDTO) method.invoke(visitService, visitRequestDTO);
+
+        // Validate the results
+        assertNotNull(result);
+        assertNotEquals(visitRequestDTO.getStart(), result.getStart());
+        assertNotEquals(visitRequestDTO.getEnd(), result.getEnd());
+
+        // Since the doctor’s timezone is "Europe/Kiev", check that the time has been converted correctly
+        assertEquals("Europe/Kiev", doctor.getTimeZone());
+    }
+
 }
