@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Service
 public class VisitServiceImpl implements VisitService {
@@ -35,6 +33,7 @@ public class VisitServiceImpl implements VisitService {
 
     @Transactional
     public VisitResponseDTO createVisit(VisitRequestDTO visit) {
+
         if(isValidTimeSlot(visit.getStart(), visit.getEnd())) {
             if(visit.getTimeZoneId() != null && !visit.getTimeZoneId().isBlank()) {
                 visit = convertToDoctorTimezone(visit);
@@ -52,30 +51,33 @@ public class VisitServiceImpl implements VisitService {
                 throw new TimeslotWithinWorkingTimeException("Timeslot is not corresponding to working hours (from %s to %s).",
                         WORK_START, WORK_END);
             }
+
         } else {
             throw new TimeslotIsInvalidException("Timeslot is not valid. End must be after start time.");
         }
     }
 
+    @Override
+    public boolean timeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd) {
+        return visitRepository.countOverlappingVisits(doctorId,timeSlotStart, timeSlotEnd) == 0;
+    }
+
     protected Visit addVisit(VisitRequestDTO visit) {
-        if(isTimeSlotFree(visit.getDoctorId(), visit.getStart(), visit.getEnd())) {
+        if(timeSlotFree(visit.getDoctorId(), visit.getStart(), visit.getEnd())) {
             Visit savedVisit = visitRepository.save(Visit.builder()
                     .start(visit.getStart())
                     .end(visit.getEnd())
                     .patient(Patient.builder().id(visit.getPatientId()).build())
                     .doctor(Doctor.builder().id(visit.getDoctorId()).build())
                     .build());
-
             if(!visitRepository.hasPatientAttendedDoctor(visit.getPatientId(), visit.getDoctorId())) {
                 doctorService.incrementTotalPatients(savedVisit.getDoctor());
             }
-
             return savedVisit;
         } else {
             throw new DoctorNotAvailableException("Doctor is not available for that time slot");
         }
     }
-
     private boolean isValidTimeSlot(LocalDateTime start, LocalDateTime end) {
         return start.isBefore(end);
     }
@@ -100,15 +102,5 @@ public class VisitServiceImpl implements VisitService {
 
     private boolean isWorkingHours(LocalDateTime start, LocalDateTime end) {
         return start.toLocalTime().isAfter(WORK_START) && end.toLocalTime().isBefore(WORK_END);
-    }
-
-    @Override
-    public boolean isTimeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd) {
-        return visitRepository.countOverlappingVisits(doctorId, timeSlotStart, timeSlotEnd) == 0;
-    }
-
-    private ZonedDateTime convertToZone(LocalDateTime localDateTime, String timezoneId) {
-        ZoneId zoneId = ZoneId.of(timezoneId);
-        return localDateTime.atZone(zoneId);
     }
 }

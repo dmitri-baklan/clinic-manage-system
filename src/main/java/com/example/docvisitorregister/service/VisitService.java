@@ -12,6 +12,6 @@ import java.util.List;
 @Service
 public interface VisitService {
     VisitResponseDTO createVisit(VisitRequestDTO visit);
-    boolean isTimeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd);
+    boolean timeSlotFree(Long doctorId, LocalDateTime timeSlotStart, LocalDateTime timeSlotEnd);
 
 }

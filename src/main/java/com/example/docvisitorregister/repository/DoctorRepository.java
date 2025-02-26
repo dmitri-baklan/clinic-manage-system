@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DoctorRepository extends JpaRepository<Doctor, Long> {
-
+    Doctor getDoctorById(Long id);
     @Modifying
     @Query("UPDATE Doctor d SET d.totalPatients = :totalPatients WHERE d.id = :id")
     void updateTotalPatients(@Param("id") Long id, @Param("totalPatients") Long totalPatients);
