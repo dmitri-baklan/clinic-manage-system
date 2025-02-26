@@ -43,7 +43,7 @@ dataGeneration.enabled=true
 You can also configure the number of records and the date ranges for generated data.
 
 **Database Dumps:**
-Prepared database dumps are available in `resources/dump`.
+Prepared database dumps are available in `resources/dump` (d-number of doctors, p-number of patients, v-number of visits)
 
 ## Requirements
 - Java 21
