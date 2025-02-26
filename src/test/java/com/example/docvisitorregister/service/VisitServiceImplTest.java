@@ -18,8 +18,6 @@ import org.mockito.MockitoAnnotations;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -48,7 +46,7 @@ class VisitServiceImplTest {
                 .end(LocalDateTime.of(2025, 2, 22, 11, 0))
                 .doctorId(1L)
                 .patientId(1L)
-                .timeZoneId("America/New_York") // Example timezone
+                .timeZoneId("America/New_York")
                 .build();
     }
 
@@ -56,7 +54,7 @@ class VisitServiceImplTest {
     void testCreateVisit_Success() {
         Doctor doctor = new Doctor();
         doctor.setId(1L);
-        doctor.setTimeZone("Europe/Kiev"); // Doctor's timezone
+        doctor.setTimeZone("Europe/Kiev");
 
         Patient patient = new Patient();
         patient.setId(1L);
@@ -131,30 +129,24 @@ class VisitServiceImplTest {
 
     @Test
     void testConvertToDoctorTimezone() throws Exception {
-        // Mock the Doctor's timezone to be "Europe/Kiev"
         Doctor doctor = new Doctor();
         doctor.setId(1L);
         doctor.setTimeZone("Europe/Kiev");
 
         when(doctorService.findDoctorById(anyLong())).thenReturn(doctor);
 
-        // Mock the visit request DTO
         visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 10, 0));
         visitRequestDTO.setEnd(LocalDateTime.of(2025, 2, 22, 11, 0));
 
-        // Use reflection to access the private method
         Method method = VisitServiceImpl.class.getDeclaredMethod("convertToDoctorTimezone", VisitRequestDTO.class);
         method.setAccessible(true);
 
-        // Invoke the method and capture the result
         VisitRequestDTO result = (VisitRequestDTO) method.invoke(visitService, visitRequestDTO);
 
-        // Validate the results
         assertNotNull(result);
         assertNotEquals(visitRequestDTO.getStart(), result.getStart());
         assertNotEquals(visitRequestDTO.getEnd(), result.getEnd());
 
-        // Since the doctor’s timezone is "Europe/Kiev", check that the time has been converted correctly
         assertEquals("Europe/Kiev", doctor.getTimeZone());
     }
 
