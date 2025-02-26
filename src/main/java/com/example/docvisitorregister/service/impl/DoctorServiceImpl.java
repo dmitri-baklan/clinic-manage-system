@@ -1,7 +1,6 @@
 package com.example.docvisitorregister.service.impl;
 
 import com.example.docvisitorregister.domain.dao.Doctor;
-import com.example.docvisitorregister.exception.DoctorWithSuchIdNotFoundException;
 import com.example.docvisitorregister.repository.DoctorRepository;
 import com.example.docvisitorregister.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +15,5 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public void incrementTotalPatients(Doctor doctor) {
         doctorRepository.updateTotalPatients(doctor.getId(), doctor.getTotalPatients() + 1);
-    }
-
-    @Override
-    public Doctor findDoctorById(Long id) {
-        return doctorRepository.findById(id).orElseThrow(DoctorWithSuchIdNotFoundException::new);
     }
 }

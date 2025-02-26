@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -31,7 +30,7 @@ public class Doctor {
     private String lastName;
 
     @Column(nullable = false, length = 50)
-    private String timeZone;
+    private ZoneOffset timeZone;
 
     @Column(nullable = false)
     private Long totalPatients;

@@ -15,5 +15,4 @@ public class VisitRequestDTO {
     private LocalDateTime end;
     private Long doctorId;
     private Long patientId;
-    private String timeZoneId;
 }
