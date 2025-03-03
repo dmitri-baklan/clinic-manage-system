@@ -1,5 +1,6 @@
 package com.example.docvisitorregister.domain.dto.request;
 
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;

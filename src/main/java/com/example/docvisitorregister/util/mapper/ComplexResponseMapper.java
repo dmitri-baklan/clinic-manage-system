@@ -42,7 +42,6 @@ public class ComplexResponseMapper {
             patientDTOList.add(patientDTO);
         }
         patientListResponseDTO.setData(patientDTOList);
-        patientListResponseDTO.setCount(patientDTOList.size());
         return patientListResponseDTO;
     }
 

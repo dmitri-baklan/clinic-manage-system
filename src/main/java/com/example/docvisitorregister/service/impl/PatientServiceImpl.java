@@ -1,6 +1,5 @@
 package com.example.docvisitorregister.service.impl;
 
-import com.example.docvisitorregister.domain.dao.Patient;
 import com.example.docvisitorregister.domain.dto.request.PatientVisitsRequestDTO;
 import com.example.docvisitorregister.domain.dto.response.PatientListResponseDTO;
 import com.example.docvisitorregister.repository.PatientRepository;
@@ -22,12 +21,16 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientListResponseDTO getPatientsLastVisit(PatientVisitsRequestDTO patientVisitsRequestDTO) {
 
-        List<Object[]> result = patientRepository.getPatientsLastVisit(patientVisitsRequestDTO.getPageSize(),
-                patientVisitsRequestDTO.getPageNo(),
-                patientVisitsRequestDTO.getFirstName(),
-                patientVisitsRequestDTO.getLastName(),
+        List<Object[]> result = patientRepository.getPatientsLastVisit(patientVisitsRequestDTO.getSize(),
+                patientVisitsRequestDTO.getPage(),
+                patientVisitsRequestDTO.getSearch(),
                 patientVisitsRequestDTO.getDoctorId());
         PatientListResponseDTO patientListResponseDTO = complexResponseMapper.toPatientListResponseDTO(result);
+
+        String searchName = patientVisitsRequestDTO.getSearch().isBlank()? null : patientVisitsRequestDTO.getSearch();
+        Integer countOfPatients = patientRepository.countPatientByFirstName(searchName);
+        patientListResponseDTO.setCount(countOfPatients);
+
         return patientListResponseDTO;
     }
 }
