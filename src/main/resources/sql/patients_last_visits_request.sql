@@ -4,7 +4,7 @@ WITH RequestedPatients AS (
     ORDER BY p.first_name
     LIMIT :pageSize OFFSET :pageNo
     ),
-ranked_visits AS (
+RankedVisits AS (
     SELECT v.patient_id,
            v.doctor_id,
            v.start,
@@ -24,7 +24,7 @@ SELECT
     d.total_patients as totalPatients,
     rv.start,
     rv.end
-FROM ranked_visits rv
+FROM RankedVisits rv
          JOIN doctors d ON rv.doctor_id = d.id
 WHERE rv.rn = 1
   AND d.id IN (:doctorIds);
