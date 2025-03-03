@@ -27,8 +27,8 @@ public class PatientServiceImpl implements PatientService {
                 patientVisitsRequestDTO.getDoctorId());
         PatientListResponseDTO patientListResponseDTO = complexResponseMapper.toPatientListResponseDTO(result);
 
-        String searchName = patientVisitsRequestDTO.getSearch().isBlank()? null : patientVisitsRequestDTO.getSearch();
-        Integer countOfPatients = patientRepository.countPatientByFirstName(searchName);
+        String searchName = patientVisitsRequestDTO.getSearch();
+        Integer countOfPatients = patientRepository.countPatientByFirstName(searchName == null || searchName.isBlank() ? null : searchName);
         patientListResponseDTO.setCount(countOfPatients);
 
         return patientListResponseDTO;
