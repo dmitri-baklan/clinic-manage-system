@@ -1,16 +1,14 @@
 package com.example.docvisitorregister.controller;
 
-import com.example.docvisitorregister.domain.dao.Visit;
 import com.example.docvisitorregister.domain.dto.request.VisitRequestDTO;
 import com.example.docvisitorregister.domain.dto.response.VisitResponseDTO;
 import com.example.docvisitorregister.service.VisitService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-
-import static org.springframework.web.servlet.function.ServerResponse.ok;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/visit")

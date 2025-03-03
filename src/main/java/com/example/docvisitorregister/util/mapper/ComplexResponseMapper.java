@@ -1,6 +1,5 @@
 package com.example.docvisitorregister.util.mapper;
 
-import com.example.docvisitorregister.domain.dao.Patient;
 import com.example.docvisitorregister.domain.dto.DoctorDTO;
 import com.example.docvisitorregister.domain.dto.PatientDTO;
 import com.example.docvisitorregister.domain.dto.VisitDTO;

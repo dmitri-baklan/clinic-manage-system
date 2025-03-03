@@ -3,37 +3,29 @@ package com.example.docvisitorregister.util.dataGeneration;
 
 import com.example.docvisitorregister.domain.dao.Doctor;
 import com.example.docvisitorregister.domain.dao.Patient;
-import com.example.docvisitorregister.domain.dao.Visit;
 import com.example.docvisitorregister.domain.dto.request.VisitRequestDTO;
 import com.example.docvisitorregister.exception.DoctorNotAvailableException;
 import com.example.docvisitorregister.exception.TimeslotWithinWorkingTimeException;
 import com.example.docvisitorregister.repository.DoctorRepository;
 import com.example.docvisitorregister.repository.PatientRepository;
-import com.example.docvisitorregister.repository.VisitRepository;
-import com.example.docvisitorregister.service.VisitService;
 import com.example.docvisitorregister.service.impl.VisitServiceImpl;
 import com.github.javafaker.Faker;
 import jakarta.annotation.PostConstruct;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.Doc;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.Random;
 
-import java.util.Locale;
-
 import static com.example.docvisitorregister.util.dataGeneration.FakerTimeZones.US_TIMEZONES;
-import static java.time.LocalDate.*;
 
 @Component
 @DependsOn({"doctorRepository", "patientRepository", "visitServiceImpl", "dataGeneratorDoctorUpdate"})

@@ -1,25 +1,13 @@
 package com.example.docvisitorregister.repository.imp;
 
-import com.example.docvisitorregister.domain.dao.Doctor;
-import com.example.docvisitorregister.domain.dao.Patient;
-import com.example.docvisitorregister.domain.dao.Visit;
 import com.example.docvisitorregister.repository.PatientQueryRepository;
 import com.example.docvisitorregister.util.SQLQueryLoader;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 public class PatientRepositoryImpl implements PatientQueryRepository {
