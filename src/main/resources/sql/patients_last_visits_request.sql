@@ -27,5 +27,6 @@ SELECT
 FROM RankedVisits rv
          JOIN doctors d ON rv.doctor_id = d.id
 WHERE rv.rn = 1
-  AND d.id IN (:doctorIds);
+  AND d.id IN (:doctorIds)
+ORDER BY rv.first_name;
 
