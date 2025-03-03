@@ -53,7 +53,6 @@ class VisitServiceImplTest {
     void testCreateVisit_Success() {
         Doctor doctor = new Doctor();
         doctor.setId(1L);
-        doctor.setTimeZone("Europe/Kiev");
 
         Patient patient = new Patient();
         patient.setId(1L);
@@ -67,7 +66,6 @@ class VisitServiceImplTest {
         when(visitRepository.countOverlappingVisits(anyLong(), any(), any())).thenReturn(0L);
         when(visitRepository.save(any(Visit.class))).thenReturn(mockVisit);
         when(visitRepository.hasPatientAttendedDoctor(anyLong(), anyLong())).thenReturn(false);
-        when(doctorService.findDoctorById(anyLong())).thenReturn(doctor);
 
         VisitResponseDTO response = visitService.createVisit(visitRequestDTO);
 
@@ -82,14 +80,14 @@ class VisitServiceImplTest {
 
     @Test
     void testCreateVisit_TimeslotNotInWorkingHours() {
-        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30));// Before working hours
+        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30));
+
         assertThrows(TimeslotWithinWorkingTimeException.class, () -> visitService.createVisit(visitRequestDTO));
     }
 
     @Test
     void testCreateVisit_DoctorNotAvailable() {
         when(visitRepository.countOverlappingVisits(anyLong(), any(), any())).thenReturn(1L); // Doctor is already booked
-        when(doctorService.findDoctorById(anyLong())).thenReturn(new Doctor());
 
         DoctorNotAvailableException exception = assertThrows(
                 DoctorNotAvailableException.class,
