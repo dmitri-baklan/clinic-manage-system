@@ -1,18 +1,16 @@
 package com.example.docvisitorregister.domain.dto.request;
 
 import jakarta.annotation.Nullable;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
 public class PatientVisitsRequestDTO {
-    Integer pageNo;
-    Integer pageSize;
+    Integer page;
+    Integer size;
     @Nullable
-    String firstName;
-    @Nullable
-    String lastName;
-    @Nullable
+    String search;
     List<Long> doctorId;
 }

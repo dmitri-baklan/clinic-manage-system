@@ -46,7 +46,6 @@ class VisitServiceImplTest {
                 .end(LocalDateTime.of(2025, 2, 22, 11, 0))
                 .doctorId(1L)
                 .patientId(1L)
-                .timeZoneId("America/New_York")
                 .build();
     }
 
@@ -83,14 +82,12 @@ class VisitServiceImplTest {
 
     @Test
     void testCreateVisit_TimeslotNotInWorkingHours() {
-        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30));
-        visitRequestDTO.setTimeZoneId(null);// Before working hours
+        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 7, 30));// Before working hours
         assertThrows(TimeslotWithinWorkingTimeException.class, () -> visitService.createVisit(visitRequestDTO));
     }
 
     @Test
     void testCreateVisit_DoctorNotAvailable() {
-        visitRequestDTO.setTimeZoneId(null);
         when(visitRepository.countOverlappingVisits(anyLong(), any(), any())).thenReturn(1L); // Doctor is already booked
         when(doctorService.findDoctorById(anyLong())).thenReturn(new Doctor());
 
@@ -125,29 +122,6 @@ class VisitServiceImplTest {
         boolean result = (boolean) method.invoke(visitService, start, end);
 
         assertFalse(result);
-    }
-
-    @Test
-    void testConvertToDoctorTimezone() throws Exception {
-        Doctor doctor = new Doctor();
-        doctor.setId(1L);
-        doctor.setTimeZone("Europe/Kiev");
-
-        when(doctorService.findDoctorById(anyLong())).thenReturn(doctor);
-
-        visitRequestDTO.setStart(LocalDateTime.of(2025, 2, 22, 10, 0));
-        visitRequestDTO.setEnd(LocalDateTime.of(2025, 2, 22, 11, 0));
-
-        Method method = VisitServiceImpl.class.getDeclaredMethod("convertToDoctorTimezone", VisitRequestDTO.class);
-        method.setAccessible(true);
-
-        VisitRequestDTO result = (VisitRequestDTO) method.invoke(visitService, visitRequestDTO);
-
-        assertNotNull(result);
-        assertNotEquals(visitRequestDTO.getStart(), result.getStart());
-        assertNotEquals(visitRequestDTO.getEnd(), result.getEnd());
-
-        assertEquals("Europe/Kiev", doctor.getTimeZone());
     }
 
 }

@@ -28,27 +28,23 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
     private EntityManager entityManager;
 
     @Override
-    public List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, String lastName, List<Long> doctorIds) {
+    public List<Object[]> getPatientsLastVisit(int pageSize, int pageNo, String firstName, List<Long> doctorIds) {
         String queryToProcess = SQLQueryLoader.getPatientVisitQuery();
-        queryToProcess = setDoctorIds(queryToProcess, doctorIds);
+        queryToProcess = doctorIdsConditionCheck(queryToProcess, doctorIds);
+
         Query query = entityManager.createNativeQuery(queryToProcess);
         query.setHint("org.hibernate.cacheable", true)
                 .setParameter("firstName", firstName != null ? "%" + firstName + "%" : null)
-                .setParameter("lastName", lastName != null ? "%" + lastName + "%" : null)
                 .setParameter("pageSize", Integer.valueOf(pageSize))
                 .setParameter("pageNo", Integer.valueOf((pageNo - 1) * pageSize));
+        if (doctorIds != null && !doctorIds.isEmpty()) {
+            query.setParameter("doctorIds", doctorIds);
+        }
         return query.getResultList();
     }
 
-    private String setDoctorIds(String queryToProcess, List<Long> doctorIds) {
-        if (doctorIds != null && !doctorIds.isEmpty()) {
-            String doctorIdsString = doctorIds.stream()
-                    .map(String::valueOf)
-                    .collect(Collectors.joining(",", "(", ")"));
-            queryToProcess = queryToProcess.replace("AND (v.doctor_id IN ())", "AND (v.doctor_id IN " + doctorIdsString + ")");
-        } else {
-            queryToProcess = queryToProcess.replace("AND (v.doctor_id IN ())", "");
-        }
-        return queryToProcess;
+    private String doctorIdsConditionCheck(String queryToProcess, List<Long> doctorIds) {
+        return doctorIds == null || doctorIds.isEmpty() ?
+                queryToProcess.replace("AND d.id IN (:doctorIds)", "") : queryToProcess;
     }
 }

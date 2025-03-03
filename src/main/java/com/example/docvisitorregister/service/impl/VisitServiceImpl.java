@@ -36,9 +36,6 @@ public class VisitServiceImpl implements VisitService {
     @Transactional
     public VisitResponseDTO createVisit(VisitRequestDTO visit) {
         if(isValidTimeSlot(visit.getStart(), visit.getEnd())) {
-            if(visit.getTimeZoneId() != null && !visit.getTimeZoneId().isBlank()) {
-                visit = convertToDoctorTimezone(visit);
-            }
             if(isWorkingHours(visit.getStart(), visit.getEnd())) {
                 Visit newVisit = addVisit(visit);
 
@@ -78,24 +75,6 @@ public class VisitServiceImpl implements VisitService {
 
     private boolean isValidTimeSlot(LocalDateTime start, LocalDateTime end) {
         return start.isBefore(end);
-    }
-
-    private VisitRequestDTO convertToDoctorTimezone(VisitRequestDTO visit) {
-        Doctor doctor = doctorService.findDoctorById(visit.getDoctorId());
-        String patientTimezone = visit.getTimeZoneId();
-
-        ZonedDateTime patientStart = convertToZone(visit.getStart(), patientTimezone);
-        ZonedDateTime patientEnd = convertToZone(visit.getEnd(), patientTimezone);
-
-        LocalDateTime doctorStart = patientStart.withZoneSameInstant(ZoneId.of(doctor.getTimeZone())).toLocalDateTime();
-        LocalDateTime doctorEnd = patientEnd.withZoneSameInstant(ZoneId.of(doctor.getTimeZone())).toLocalDateTime();
-
-        return VisitRequestDTO.builder()
-                .start(doctorStart)
-                .end(doctorEnd)
-                .patientId(visit.getPatientId())
-                .doctorId(visit.getDoctorId())
-                .build();
     }
 
     private boolean isWorkingHours(LocalDateTime start, LocalDateTime end) {

@@ -35,17 +35,16 @@ class PatientServiceImplTest {
     @BeforeEach
     void setUp() {
         requestDTO = new PatientVisitsRequestDTO();
-        requestDTO.setPageSize(10);
-        requestDTO.setPageNo(1);
-        requestDTO.setFirstName("John");
-        requestDTO.setLastName("Doe");
+        requestDTO.setSize(10);
+        requestDTO.setPage(1);
+        requestDTO.setSearch("John");
         requestDTO.setDoctorId(List.of(123L, 456L));
     }
 
     @Test
     void testGetPatientsLastVisit() {
         List<Object[]> mockResult = Collections.emptyList();
-        when(patientRepository.getPatientsLastVisit(anyInt(), anyInt(), anyString(), anyString(), anyList()))
+        when(patientRepository.getPatientsLastVisit(anyInt(), anyInt(), anyString(), anyList()))
                 .thenReturn(mockResult);
         when(complexResponseMapper.toPatientListResponseDTO(anyList())).thenReturn(new PatientListResponseDTO());
 
