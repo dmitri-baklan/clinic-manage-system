@@ -23,12 +23,11 @@ This is a Spring Boot application running on Java 21 that provides functionality
 **Endpoint:** `GET /patient/getPatientsLastVisit`
 
 **Required Query Parameters:**
-- `pageNo` (Integer) – Page number for pagination
-- `pageSize` (Integer) – Number of records per page
+- `page` (Integer) – Page number for pagination
+- `size` (Integer) – Number of records per page
 
 **Optional Query Parameters:**
-- `firstName` (String) – Filter by patient's first name
-- `lastName` (String) – Filter by patient's last name
+- `search` (String) – Filter by patient's first name
 - `doctorId` (Long) – Filter by doctor's ID
 
 *Note:* The data is retrieved using a single request to the database for performance efficiency.
