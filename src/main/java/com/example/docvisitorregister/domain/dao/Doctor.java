@@ -28,7 +28,7 @@ public class Doctor {
     private String lastName;
 
     @Column(nullable = false, length = 50)
-    private ZoneOffset timeZone;
+    private String timeZone;
 
     @Column(nullable = false)
     private Long totalPatients;

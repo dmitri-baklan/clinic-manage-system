@@ -2,12 +2,13 @@ package com.example.docvisitorregister.util.dataGeneration;
 
 public interface FakerTimeZones {
     String[] US_TIMEZONES = {
-            "-10:00",
-        "-09:00",
-        "-08:00",
-        "-07:00",
-        "-06:00",
-        "-05:00",
-        "-04:00"
+            "Pacific/Honolulu",
+            "America/Anchorage",
+            "America/Los_Angeles",
+            "America/Denver",
+            "America/Chicago",
+            "America/New_York",
+            "America/Puerto_Rico"
     };
+
 }
