@@ -22,7 +22,7 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
 
         Query query = entityManager.createNativeQuery(queryToProcess);
         query.setHint("org.hibernate.cacheable", true)
-                .setParameter("firstName", firstName != null ? "%" + firstName + "%" : null)
+                .setParameter("firstName", !firstName.isBlank() ? firstName : null)
                 .setParameter("pageSize", pageSize)
                 .setParameter("pageNo", (pageNo - 1) * pageSize);
         if (doctorIds != null && !doctorIds.isEmpty()) {

@@ -5,7 +5,8 @@ WITH RequestedPatients AS (
     LIMIT :pageSize OFFSET :pageNo
     ),
 RowCount AS (
-         SELECT COUNT(*) AS total_rows FROM RequestedPatients
+    SELECT COUNT(*) AS total_rows FROM patients AS p
+    WHERE (:firstName IS NULL OR p.first_name LIKE :firstName )
      ),
 RankedVisits AS (
     SELECT v.patient_id,
