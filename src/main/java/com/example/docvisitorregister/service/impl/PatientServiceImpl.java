@@ -6,31 +6,42 @@ import com.example.docvisitorregister.repository.PatientRepository;
 import com.example.docvisitorregister.service.PatientService;
 import com.example.docvisitorregister.util.mapper.ComplexResponseMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class PatientServiceImpl implements PatientService {
+
+    private static final Integer defaultPageSize = 5;
+
     @Autowired
     private PatientRepository patientRepository;
 
     @Autowired
     private ComplexResponseMapper complexResponseMapper;
 
+
     @Override
-    public PatientListResponseDTO getPatientsLastVisit(PatientVisitsRequestDTO patientVisitsRequestDTO) {
+    public PatientListResponseDTO getPatientsLastVisit(PatientVisitsRequestDTO visitRequest) {
+        visitRequest = checkRequestValues(visitRequest);
 
-        List<Object[]> result = patientRepository.getPatientsLastVisit(patientVisitsRequestDTO.getSize(),
-                patientVisitsRequestDTO.getPage(),
-                patientVisitsRequestDTO.getSearch(),
-                patientVisitsRequestDTO.getDoctorId());
-        PatientListResponseDTO patientListResponseDTO = complexResponseMapper.toPatientListResponseDTO(result);
+        List<Object[]> result = patientRepository.getPatientsLastVisit(visitRequest.getSize(),
+                visitRequest.getPage(),
+                visitRequest.getSearch(),
+                visitRequest.getDoctorId());
 
-        String searchName = patientVisitsRequestDTO.getSearch();
-        Integer countOfPatients = patientRepository.countPatientByFirstName(searchName == null || searchName.isBlank() ? null : searchName);
-        patientListResponseDTO.setCount(countOfPatients);
-
-        return patientListResponseDTO;
+        return complexResponseMapper.toPatientListResponseDTO(result);
+    }
+    
+    private PatientVisitsRequestDTO checkRequestValues(PatientVisitsRequestDTO visitRequest) {
+        if(visitRequest.getSize() == null) {
+            visitRequest.setSize(defaultPageSize);
+        }
+        if(visitRequest.getPage() == null) {
+            visitRequest.setPage(1);
+        }
+        return visitRequest;
     }
 }
