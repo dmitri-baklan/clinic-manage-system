@@ -3,6 +3,7 @@ package com.example.docvisitorregister.controller;
 import com.example.docvisitorregister.domain.dto.request.VisitRequestDTO;
 import com.example.docvisitorregister.domain.dto.response.VisitResponseDTO;
 import com.example.docvisitorregister.service.VisitService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -17,7 +18,7 @@ public class VisitController {
     VisitService visitService;
 
     @PostMapping("/addVisit")
-    public ResponseEntity<VisitResponseDTO> addVisit(@ModelAttribute VisitRequestDTO visit) {
+    public ResponseEntity<VisitResponseDTO> addVisit(@Valid @ModelAttribute VisitRequestDTO visit) {
         return ResponseEntity.ok( visitService.createVisit(visit));
     }
 
