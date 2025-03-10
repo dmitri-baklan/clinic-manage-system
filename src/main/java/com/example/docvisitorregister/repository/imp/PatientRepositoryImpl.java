@@ -33,6 +33,6 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
 
     private String doctorIdsConditionCheck(String queryToProcess, List<Long> doctorIds) {
         return doctorIds == null || doctorIds.isEmpty() ?
-                queryToProcess.replace("JOIN visits AS v ON p.id = v.patient_id AND doctor_id IN (:doctorIds)", "") : queryToProcess;
+                queryToProcess.replaceAll("\\s*AND doctor_id IN \\(:doctorIds\\)", "") : queryToProcess;
     }
 }
