@@ -6,7 +6,6 @@ WITH FilteredPatients AS (
         FROM patients AS p
                  JOIN visits AS v ON p.id = v.patient_id AND doctor_id IN (:doctorIds)
         WHERE (:firstName IS NULL OR p.first_name LIKE :firstName)
-        ORDER BY first_name, last_name
     ),
 RequestedPatients AS (
         SELECT * FROM FilteredPatients
