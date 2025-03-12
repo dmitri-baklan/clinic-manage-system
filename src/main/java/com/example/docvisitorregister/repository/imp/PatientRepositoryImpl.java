@@ -22,7 +22,7 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
 
         Query query = entityManager.createNativeQuery(queryToProcess);
         query.setHint("org.hibernate.cacheable", true)
-                .setParameter("firstName",firstName == null || firstName.isBlank() ? null : firstName)
+                .setParameter("firstName", firstName == null || firstName.isBlank() ? null : firstName)
                 .setParameter("pageSize", pageSize)
                 .setParameter("pageNo", (pageNo - 1) * pageSize);
         if (doctorIds != null && !doctorIds.isEmpty()) {
@@ -32,7 +32,11 @@ public class PatientRepositoryImpl implements PatientQueryRepository {
     }
 
     private String doctorIdsConditionCheck(String queryToProcess, List<Long> doctorIds) {
-        return doctorIds == null || doctorIds.isEmpty() ?
-                queryToProcess.replaceAll("\\s*AND doctor_id IN \\(:doctorIds\\)", "") : queryToProcess;
+        if (doctorIds == null || doctorIds.isEmpty()) {
+            queryToProcess = queryToProcess.replaceAll("\\s*AND doctor_id IN \\(:doctorIds\\)", "")
+                    .replace("JOIN visits AS v ON p.id = v.patient_id", "");
+
+        }
+        return queryToProcess;
     }
 }
